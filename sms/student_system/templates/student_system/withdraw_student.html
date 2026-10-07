@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Withdraw Student - School Management System</title>
+    <style>
+        :root { --primary: #1E3A8A; --bg: #F8FAFC; --text: #334155; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg); color: var(--text); }
+        
+        nav { background-color: var(--primary); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+        nav .nav-links a { color: white; text-decoration: none; margin-left: 20px; font-weight: 600; font-size: 14px; }
+        
+        .container { max-width: 600px; margin: 50px auto; padding: 30px; background: white; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.04); }
+        h2 { color: #DC2626; margin-bottom: 10px; }
+        p { color: #64748B; margin-bottom: 20px; font-size: 14px; }
+        
+        form { display: flex; flex-direction: column; gap: 15px; }
+        .form-group { display: flex; flex-direction: column; gap: 5px; }
+        label { font-weight: 600; font-size: 14px; color: var(--text); }
+        input, select, textarea { padding: 10px; border: 1px solid #CBD5E1; border-radius: 6px; font-size: 14px; }
+        
+        .btn-group { display: flex; gap: 10px; margin-top: 10px; }
+        .btn { background-color: #DC2626; color: white; padding: 10px 18px; border: none; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; text-decoration: none; display: inline-block; }
+        .btn:hover { background-color: #B91C1C; }
+        .btn-secondary { background-color: #64748B; }
+        .btn-secondary:hover { background-color: #475569; }
+    </style>
+</head>
+<body>
+    <nav>
+        <span><strong>EduManage SMS</strong></span>
+        <div class="nav-links">
+            <a href="{% url 'dashboard' %}">Dashboard</a>
+            <a href="{% url 'student_list' %}">Student List</a>
+            <a href="{% url 'logout' %}">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h2>Withdraw Student: {{ student.name }}</h2>
+        <p>You are about to process the withdrawal for <strong>{{ student.name }}</strong> from <strong>{{ student.level }}</strong>. Please fill out the details below.</p>
+
+        <form method="POST">
+            {% csrf_token %}
+            
+            {% for field in form %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                        <span style="color: #DC2626; font-size: 12px;">{{ field.errors.0 }}</span>
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+            <div class="btn-group">
+                <button type="submit" class="btn">Confirm Withdrawal</button>
+                <a href="{% url 'student_list' %}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

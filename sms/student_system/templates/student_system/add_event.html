@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add School Event - SMS</title>
+    <style>
+        :root { --primary: #1E3A8A; --bg: #F8FAFC; --text: #334155; }
+        body { background-color: var(--bg); color: var(--text); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; }
+        .form-container { max-width: 500px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.04); }
+        h2 { color: var(--primary); margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 14px; }
+        .form-control { width: 100%; padding: 10px; border: 1px solid #CBD5E1; border-radius: 6px; font-size: 14px; }
+        .btn { background-color: var(--primary); color: white; padding: 10px 18px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
+        .btn:hover { background-color: #1D4ED8; }
+        .back-link { display: inline-block; margin-top: 15px; font-size: 13px; color: #64748B; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h2>Add New School Event</h2>
+        <form method="POST">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn">Save Event</button>
+        </form>
+        <a href="{% url 'dashboard' %}" class="back-link">&larr; Back to Dashboard</a>
+    </div>
+</body>
+</html>

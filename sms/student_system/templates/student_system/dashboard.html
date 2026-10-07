@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - School Management System</title>
+    <style>
+        :root { --primary: #1E3A8A; --bg: #F8FAFC; --text: #334155; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg); color: var(--text); }
+        
+        nav { background-color: var(--primary); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+        nav .nav-links a { color: white; text-decoration: none; margin-left: 20px; font-weight: 600; font-size: 14px; }
+        nav .nav-links a:hover { text-decoration: underline; }
+        
+        .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+        h1 { color: var(--primary); margin-bottom: 8px; }
+        .subtitle { color: #64748B; margin-bottom: 30px; }
+        
+        .dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 25px; align-items: start; }
+        @media (max-width: 900px) { .dashboard-grid { grid-template-columns: 1fr; } }
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 25px; }
+        .card { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.04); border-left: 5px solid var(--primary); }
+        .card h3 { font-size: 15px; color: #64748B; margin-bottom: 10px; }
+        .card .stat { font-size: 30px; font-weight: bold; color: var(--primary); }
+        
+        .actions-section { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.04); margin-bottom: 25px; }
+        .actions-section h3 { margin-bottom: 15px; color: var(--text); }
+        .btn-group { display: flex; gap: 12px; flex-wrap: wrap; }
+        .btn { background-color: var(--primary); color: white; padding: 10px 18px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 14px; display: inline-block; transition: background 0.2s; }
+        .btn:hover { background-color: #1D4ED8; }
+        .btn-secondary { background-color: #64748B; }
+        .btn-secondary:hover { background-color: #475569; }
+
+        /* Aligned Class Grid Styles */
+        .class-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; }
+        .class-card { background: #F8FAFC; border: 1px solid #E2E8F0; padding: 15px; border-radius: 8px; display: flex; flex-direction: column; justify-content: space-between; }
+        .class-card strong { font-size: 15px; color: var(--primary); display: block; margin-bottom: 12px; }
+
+        .notification-panel { background: #FEF3C7; border: 1px solid #F59E0B; padding: 20px; border-radius: 10px; margin-bottom: 25px; }
+        .notification-panel h3 { color: #92400E; font-size: 16px; margin-bottom: 10px; }
+        .notification-panel ul { margin-left: 20px; font-size: 14px; color: #78350F; }
+        .notification-panel li { margin-bottom: 5px; }
+
+        .sidebar-widget { background: white; padding: 22px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.04); }
+        .sidebar-widget h3 { color: var(--primary); margin-bottom: 15px; font-size: 17px; border-bottom: 2px solid #F1F5F9; padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .event-card { background: #F8FAFC; border-left: 4px solid var(--primary); padding: 12px; border-radius: 6px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-start; }
+        .event-card strong { font-size: 14px; color: var(--text); display: block; }
+        .event-card .date { font-size: 12px; color: #2563EB; font-weight: 600; margin-top: 3px; }
+        .event-card .desc { font-size: 12px; color: #64748B; margin-top: 4px; }
+    </style>
+</head>
+<body>
+    <nav>
+        <span><strong>EduManage SMS</strong></span>
+        <div class="nav-links">
+            <a href="{% url 'dashboard' %}">Dashboard</a>
+            <a href="{% url 'student_list' %}">Student List</a>
+            
+            {% if can_add_students %}
+                <a href="{% url 'register_student' %}">Register Student</a>
+            {% endif %}
+
+            {% if is_admin %}
+                <a href="{% url 'teacher_list' %}">Manage Teachers</a>
+            {% endif %}
+            <a href="{% url 'logout' %}">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>Welcome Back, {{ request.user.username|title }}!</h1>
+        <p class="subtitle">Here is a quick overview of your school's current records and management options.</p>
+
+        {% if is_admin and teacher_registrations %}
+        <div class="notification-panel">
+            <h3>Recent Teacher Student Registrations</h3>
+            <ul>
+                {% for reg in teacher_registrations %}
+                    <li><strong>{{ reg.added_by.username|title }}</strong> registered <strong>{{ reg.name }}</strong> in <strong>{{ reg.level }}</strong> on {{ reg.date_registered|date:"M d, Y" }}.</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <div class="dashboard-grid">
+            
+            <!-- LEFT COLUMN -->
+            <div>
+                <div class="grid">
+                    <div class="card">
+                        <h3>Active Students</h3>
+                        <div class="stat">{{ total_students }}</div>
+                    </div>
+                    {% if is_admin %}
+                    <div class="card" style="border-left-color: #10B981;">
+                        <h3>Total Teachers</h3>
+                        <div class="stat">{{ total_teachers }}</div>
+                    </div>
+                    {% endif %}
+                    <div class="card" style="border-left-color: #F59E0B;">
+                        <h3>Access Level</h3>
+                        <div class="stat" style="font-size: 18px; margin-top: 8px;">
+                            {% if is_admin %}Admin{% else %}Teacher{% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="actions-section">
+                    <h3>Quick Actions</h3>
+                    <div class="btn-group">
+                        <a href="{% url 'student_list' %}" class="btn">View Student Directory & Search</a>
+                        {% if can_add_students %}
+                            <a href="{% url 'register_student' %}" class="btn btn-secondary">+ Register New Student</a>
+                        {% endif %}
+                        {% if is_admin %}
+                            <a href="{% url 'teacher_list' %}" class="btn" style="background-color: #047857;">Manage Teacher Accounts</a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="actions-section">
+                    <h3>Class Registers</h3>
+                    <p style="font-size: 13px; color: #64748B; margin-bottom: 15px;">Select a class level below to view enrolled students.</p>
+                    
+                    {% if class_levels %}
+                        <div class="class-grid">
+                            {% for level in class_levels %}
+                                <div class="class-card">
+                                    <strong>{{ level }}</strong>
+                                    <div>
+                                        <a href="{% url 'class_student_list' level %}" class="btn" style="padding: 6px 12px; font-size: 12px; width: 100%; text-align: center;">View Class</a>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p style="font-size: 13px; color: #94A3B8; font-style: italic;">No active class levels found yet. Register students to populate class registers!</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN -->
+            <div class="sidebar-widget">
+                <h3><span>School Calendar</span></h3>
+                
+                {% if upcoming_events %}
+                    <div>
+                        {% for event in upcoming_events %}
+                            <div class="event-card">
+                                <div>
+                                    <strong>{{ event.title }}</strong>
+                                    <div class="date">📅 {{ event.event_date|date:"F d, Y" }}</div>
+                                    {% if event.description %}
+                                        <div class="desc">{{ event.description }}</div>
+                                    {% endif %}
+                                </div>
+                                {% if is_admin %}
+                                    <a href="{% url 'delete_school_event' event.id %}" style="font-size: 11px; color: #DC2626; text-decoration: none; font-weight: 600; margin-left: 10px; white-space: nowrap;">[Delete]</a>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p style="font-size: 13px; color: #94A3B8; font-style: italic; padding: 10px 0;">No upcoming events scheduled right now.</p>
+                {% endif %}
+                
+                {% if is_admin %}
+                    <div style="margin-top: 15px; text-align: right; border-top: 1px solid #F1F5F9; padding-top: 10px;">
+                        <a href="{% url 'add_school_event' %}" style="font-size: 12px; color: #2563EB; text-decoration: none; font-weight: 600;">+ Add New Event</a>
+                    </div>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+</body>
+</html>

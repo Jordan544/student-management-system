@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Take Attendance - {{ level_name }}</title>
+    <style>
+        :root { --primary: #1E3A8A; --bg: #F8FAFC; --text: #334155; }
+        body { background-color: var(--bg); color: var(--text); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 30px; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.04); }
+        h2 { color: var(--primary); margin-bottom: 5px; }
+        .subtitle { color: #64748B; font-size: 14px; margin-bottom: 25px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 25px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #E2E8F0; font-size: 14px; }
+        th { background-color: #F8FAFC; color: var(--primary); font-weight: 600; }
+        .btn { background-color: var(--primary); color: white; padding: 10px 20px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
+        .btn:hover { background-color: #1D4ED8; }
+        .btn-secondary { background-color: #64748B; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: 600; margin-left: 10px; display: inline-block; }
+        select { padding: 6px 10px; border-radius: 4px; border: 1px solid #CBD5E1; font-size: 13px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Attendance Roll-Call: {{ level_name }}</h2>
+        <p class="subtitle">Date: {{ today|date:"F d, Y" }} | Record daily status for each student.</p>
+
+        {% if students %}
+        <form method="POST">
+            {% csrf_token %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Student Name</th>
+                        <th>Parent Contact</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in students %}
+                    <tr>
+                        <td><strong>{{ student.name }}</strong></td>
+                        <td>{{ student.parent_contact }}</td>
+                        <td>
+                            <select name="status_{{ student.id }}">
+                                <option value="Present" selected>Present</option>
+                                <option value="Absent">Absent</option>
+                                <option value="Late">Late</option>
+                            </select>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <button type="submit" class="btn">Save Attendance</button>
+            <a href="{% url 'dashboard' %}" class="btn-secondary">Cancel</a>
+        </form>
+        {% else %}
+            <p style="font-style: italic; color: #64748B;">No active students found in this class level.</p>
+            <br>
+            <a href="{% url 'dashboard' %}" class="btn-secondary" style="margin-left: 0;">Back to Dashboard</a>
+        {% endif %}
+    </div>
+</body>
+</html>

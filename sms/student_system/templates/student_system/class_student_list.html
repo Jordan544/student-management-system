@@ -1,0 +1,62 @@
+{% extends "student_system/base.html" %}
+{% block title %}Class: {{ level_name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-head">
+        <div>
+            <h1>Class Directory: {{ level_name }}</h1>
+            <p class="subtitle">{{ students|length }} active student{{ students|length|pluralize }} enrolled in this class.
+                {% if marked_today %}<span class="badge badge-green">Attendance taken today</span>{% else %}<span class="badge badge-amber">Attendance not taken today</span>{% endif %}</p>
+        </div>
+        <div class="actions no-print">
+            <a href="{% url 'take_attendance' level_name %}" class="btn">✔ Take Attendance</a>
+            <button type="button" class="btn btn-outline" onclick="window.print()">Print register</button>
+            <a href="{% url 'dashboard' %}" class="btn btn-secondary">Back</a>
+        </div>
+    </div>
+
+    <div class="card" style="padding:20px;">
+        <form method="get" class="toolbar no-print">
+            <input type="search" name="q" value="{{ query }}" placeholder="Search this class by name or ID…" aria-label="Search this class">
+            <button type="submit" class="btn">Search</button>
+            {% if query %}<a href="{% url 'class_student_list' level_name %}" class="btn btn-secondary">Reset</a>{% endif %}
+        </form>
+
+        {% if students %}
+        <div class="table-wrap">
+        <table class="data">
+            <thead>
+                <tr><th>#</th><th>Student</th><th>Location</th><th>Primary contact</th><th class="no-print">Actions</th></tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                <tr>
+                    <td class="muted">{{ forloop.counter }}</td>
+                    <td>
+                        <div class="student-cell">
+                            {% if student.student_photo %}<img class="avatar" src="{{ student.student_photo.url }}" alt="">{% else %}<span class="avatar">{{ student.name|slice:":1"|upper }}</span>{% endif %}
+                            <div><strong>{{ student.name }}</strong><br><span class="student-id">{{ student.student_number }}</span></div>
+                        </div>
+                    </td>
+                    <td>{{ student.location|default:"—" }}</td>
+                    <td>
+                        {% if student.parent_contact %}{{ student.parent_contact_label }}: <a href="tel:{{ student.parent_contact }}" style="text-decoration:none;">{{ student.parent_contact }}</a>{% else %}—{% endif %}
+                    </td>
+                    <td class="no-print">
+                        <div class="actions">
+                            <a href="{% url 'student_detail' student.id %}" class="btn btn-sm">View profile</a>
+                            {% if is_admin %}<a href="{% url 'withdraw_student' student.id %}" class="btn btn-sm btn-danger">Withdraw</a>{% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+        {% else %}
+        <div class="empty-state">{% if query %}No students in {{ level_name }} match “{{ query }}”.{% else %}No students are currently registered under {{ level_name }}.{% endif %}</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

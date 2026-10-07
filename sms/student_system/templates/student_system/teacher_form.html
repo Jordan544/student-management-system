@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Teacher Account - EduManage SMS</title>
+    <style>
+        :root { --primary: #1E3A8A; --bg: #F8FAFC; --text: #334155; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg); color: var(--text); }
+        nav { background-color: var(--primary); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+        nav .nav-links a { color: white; text-decoration: none; margin-left: 20px; font-weight: 600; font-size: 14px; }
+        nav .nav-links a:hover { text-decoration: underline; }
+        .container { max-width: 600px; margin: 40px auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.04); }
+        h2 { color: var(--primary); margin-bottom: 20px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-weight: 600; font-size: 14px; margin-bottom: 6px; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #CBD5E1; border-radius: 6px; font-size: 14px; }
+        input:focus, select:focus { outline: none; border-color: var(--primary); }
+        .btn { background-color: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; }
+        .btn:hover { background-color: #1D4ED8; }
+        .btn-secondary { background-color: #64748B; text-decoration: none; display: inline-block; margin-left: 10px; text-align: center; }
+        .btn-secondary:hover { background-color: #475569; }
+        
+        /* Badge Tag styling for classes */
+        .class-badge {
+            background-color: #EFF6FF;
+            color: #1E40AF;
+            border: 1px solid #BFDBFE;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .class-badge button {
+            background: none;
+            border: none;
+            color: #3B82F6;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .class-badge button:hover {
+            color: #1E3A8A;
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <span><strong>EduManage SMS</strong></span>
+        <div class="nav-links">
+            <a href="{% url 'dashboard' %}">Dashboard</a>
+            <a href="{% url 'teacher_list' %}">Back to Teachers</a>
+            <a href="{% url 'logout' %}">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h2>Create Teacher Account</h2>
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" name="username" required placeholder="Enter username">
+            </div>
+
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" name="email" placeholder="teacher@school.com">
+            </div>
+
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" name="password" required placeholder="••••••••">
+            </div>
+
+            <!-- Interactive Class Selector -->
+            <div class="form-group">
+                <label>Assigned Classes / Levels</label>
+                
+                <!-- Container showing active badges -->
+                <div id="selected-classes-container" style="display: flex; flex-wrap: wrap; gap: 8px; padding: 10px; border: 1px solid #CBD5E1; border-radius: 6px; min-height: 48px; background: #fff; margin-bottom: 10px;">
+                    <span id="placeholder-text" style="color: #94A3B8; font-size: 13px; align-self: center; font-style: italic;">No classes added yet. Use the selector below to add classes.</span>
+                </div>
+
+                <!-- Selector & Add Button -->
+                <div style="display: flex; gap: 10px;">
+                    <select id="class-selector" style="flex: 1;">
+                        <option value="">Select a class level...</option>
+                        <option value="Senior 1">Senior 1</option>
+                        <option value="Senior 2">Senior 2</option>
+                        <option value="Senior 3">Senior 3</option>
+                        <option value="Senior 4">Senior 4</option>
+                        <option value="Senior 5">Senior 5</option>
+                        <option value="Senior 6">Senior 6</option>
+                    </select>
+                    <button type="button" id="add-class-btn" class="btn" style="padding: 10px 16px; white-space: nowrap;">+ Add</button>
+                </div>
+
+                <!-- Hidden container that dynamically populates inputs for Django form submission -->
+                <div id="hidden-inputs-container"></div>
+            </div>
+
+            <div style="margin-top: 25px;">
+                <button type="submit" class="btn">Create Teacher</button>
+                <a href="{% url 'teacher_list' %}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const classSelector = document.getElementById('class-selector');
+            const addBtn = document.getElementById('add-class-btn');
+            const container = document.getElementById('selected-classes-container');
+            const hiddenContainer = document.getElementById('hidden-inputs-container');
+            const placeholder = document.getElementById('placeholder-text');
+            
+            let selectedClasses = new Set();
+
+            addBtn.addEventListener('click', function() {
+                const className = classSelector.value;
+                if (!className || selectedClasses.has(className)) return;
+
+                selectedClasses.add(className);
+                renderUI();
+                classSelector.value = ""; // Reset dropdown selection
+            });
+
+            function renderUI() {
+                container.innerHTML = '';
+                hiddenContainer.innerHTML = '';
+
+                if (selectedClasses.size === 0) {
+                    container.appendChild(placeholder);
+                    return;
+                }
+
+                selectedClasses.forEach(cls => {
+                    // Create visual badge
+                    const badge = document.createElement('div');
+                    badge.className = 'class-badge';
+                    badge.innerHTML = `
+                        <span>${cls}</span>
+                        <button type="button" title="Remove">&times;</button>
+                    `;
+                    
+                    // Handle deletion of badge
+                    badge.querySelector('button').addEventListener('click', function() {
+                        selectedClasses.delete(cls);
+                        renderUI();
+                    });
+
+                    container.appendChild(badge);
+
+                    // Create hidden input so Django receives `allowed_levels` cleanly as a comma-separated string or list
+                    const hiddenInput = document.createElement('input');
+                    hiddenInput.type = 'hidden';
+                    hiddenInput.name = 'allowed_levels_list'; // Captured in views.py if needed, or joined via JS
+                    hiddenInput.value = cls;
+                    hiddenContainer.appendChild(hiddenInput);
+                });
+
+                // Also inject a single comma-joined hidden input to match your current backend `request.POST.get('allowed_levels')`
+                const mainInput = document.createElement('input');
+                mainInput.type = 'hidden';
+                mainInput.name = 'allowed_levels';
+                mainInput.value = Array.from(selectedClasses).join(', ');
+                hiddenContainer.appendChild(mainInput);
+            }
+        });
+    </script>
+</body>
+</html>

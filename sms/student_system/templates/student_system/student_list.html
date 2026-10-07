@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Directory</title>
+    <style>
+        :root { --primary: #1E3A8A; --bg: #F8FAFC; --text: #334155; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg); color: var(--text); }
+        nav { background-color: var(--primary); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+        nav .nav-links a { color: white; text-decoration: none; margin-left: 20px; font-weight: 600; font-size: 14px; }
+        .container { max-width: 900px; margin: 40px auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.04); }
+        h2 { color: var(--primary); margin-bottom: 20px; }
+        .search-form { display: flex; gap: 10px; margin-bottom: 20px; }
+        .search-form input { flex: 1; padding: 10px; border: 1px solid #CBD5E1; border-radius: 6px; font-size: 14px; }
+        .btn { background-color: var(--primary); color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; text-decoration: none; display: inline-block; }
+        .btn-secondary { background-color: #64748B; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #CBD5E1; font-size: 14px; }
+        th { background-color: #F1F5F9; color: var(--primary); }
+    </style>
+</head>
+<body>
+    <nav>
+        <span><strong>EduManage SMS</strong></span>
+        <div class="nav-links">
+            <a href="{% url 'dashboard' %}">Dashboard</a>
+            <a href="{% url 'student_list' %}">Student List</a>
+            <a href="{% url 'logout' %}">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h2>Student Directory</h2>
+        
+        <!-- Search Form -->
+        <form method="get" class="search-form">
+            <input type="text" name="q" value="{{ query }}" placeholder="Search student by name or class level (e.g., Senior 1)...">
+            <button type="submit" class="btn">Search</button>
+            {% if query %}
+                <a href="{% url 'student_list' %}" class="btn btn-secondary" style="display: flex; align-items: center;">Reset</a>
+            {% endif %}
+        </form>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Full Name</th>
+                    <th>Level</th>
+                    <th>Parent Contact</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                <tr>
+                    <td>{{ student.name }}</td>
+                    <td>{{ student.level }}</td>
+                    <td>{{ student.parent_contact }}</td>
+                    <td><a href="{% url 'student_detail' student.id %}" class="btn" style="padding: 6px 12px; font-size: 12px;">View Details</a></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" style="text-align: center; color: #64748B; padding: 20px;">No students found matching your criteria.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
